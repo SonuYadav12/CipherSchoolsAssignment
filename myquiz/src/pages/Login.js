@@ -2,19 +2,19 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 
-
 const Login = ({ setAuth }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState('student'); 
   const navigate = useNavigate(); 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post('http://localhost:3000/api/auth/login', { email, password });
+      const res = await axios.post('http://localhost:3000/api/auth/login', { email, password, role });
       localStorage.setItem('token', res.data.token);
       setAuth(true);
-      navigate('/home'); 
+      navigate('/admin'); 
     } catch (err) {
       console.error(err);
     }
@@ -41,6 +41,30 @@ const Login = ({ setAuth }) => {
             className="w-full p-3 border border-gray-300 rounded"
             required
           />
+          <div className="flex items-center space-x-4">
+            <label>
+              <input
+                type="radio"
+                name="role"
+                value="student"
+                checked={role === 'student'}
+                onChange={() => setRole('student')}
+                className="mr-2"
+              />
+              Student
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="role"
+                value="admin"
+                checked={role === 'admin'}
+                onChange={() => setRole('admin')}
+                className="mr-2"
+              />
+              Admin
+            </label>
+          </div>
           <button
             type="submit"
             className="w-full bg-blue-500 text-white p-3 rounded hover:bg-blue-600"

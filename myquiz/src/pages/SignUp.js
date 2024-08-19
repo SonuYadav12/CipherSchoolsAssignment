@@ -8,12 +8,13 @@ const SignUp = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [role, setRole] = useState('student'); 
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post('http://localhost:3000/api/auth/register', { email, password, name });
+      const res = await axios.post('http://localhost:3000/api/auth/register', { email, password, name, role });
       console.log('User registered:', res.data);
       toast.success('Registration successful!', {
         position: "top-center",
@@ -71,6 +72,30 @@ const SignUp = () => {
             className="w-full p-3 border border-gray-300 rounded"
             required
           />
+          <div className="flex items-center space-x-4">
+            <label>
+              <input
+                type="radio"
+                name="role"
+                value="student"
+                checked={role === 'student'}
+                onChange={() => setRole('student')}
+                className="mr-2"
+              />
+              Student
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="role"
+                value="admin"
+                checked={role === 'admin'}
+                onChange={() => setRole('admin')}
+                className="mr-2"
+              />
+              Admin
+            </label>
+          </div>
           <button
             type="submit"
             className="w-full bg-green-500 text-white p-3 rounded hover:bg-green-600"
