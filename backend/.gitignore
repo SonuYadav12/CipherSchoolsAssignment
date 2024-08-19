@@ -1,0 +1,53 @@
+# Node modules
+node_modules/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+
+# Build outputs
+dist/
+build/
+
+# Cache and IDE-related files
+.cache/
+.vscode/
+.DS_Store
+
+# NPM and Yarn logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Coverage directories
+coverage/
+
+# Ignore React and Next.js specific files
+/.next/
+/out/
+/public/static/
+/public/uploads/
+
+# Ignore IDE-related files
+.idea/
+.vscode/
+*.swp
+
+# Ignore Docker-related files
+docker-compose.override.yml
+Dockerfile
+docker-compose.yml
+
+# Ignore build and test artifacts
+build/
+coverage/
+tmp/
+temp/
+*.tmp
+*.temp
