@@ -1,6 +1,5 @@
 const Test = require('../models/Test');
 
-// Create a new test
 exports.createTest = async (req, res) => {
   const { title, description, questions } = req.body;
 
@@ -30,7 +29,6 @@ exports.createTest = async (req, res) => {
   }
 };
 
-// Submit a test
 exports.submitTest = async (req, res) => {
   const { testId, answers } = req.body;
   
@@ -58,7 +56,6 @@ exports.submitTest = async (req, res) => {
   }
 };
 
-// Get a test by ID
 exports.getTestById = async (req, res) => {
   const { id } = req.params;
   try {
@@ -73,7 +70,6 @@ exports.getTestById = async (req, res) => {
   }
 };
 
-// Get all tests
 exports.getTests = async (req, res) => {
   try {
     const tests = await Test.find();
@@ -84,7 +80,6 @@ exports.getTests = async (req, res) => {
   }
 };
 
-// Update a test
 exports.updateTest = async (req, res) => {
   const { id } = req.params;
   const { title, description, questions } = req.body;
@@ -117,7 +112,6 @@ exports.updateTest = async (req, res) => {
   }
 };
 
-// Delete a test
 exports.deleteTest = async (req, res) => {
   const { id } = req.params;
 
