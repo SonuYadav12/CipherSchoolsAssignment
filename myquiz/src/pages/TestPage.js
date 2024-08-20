@@ -12,6 +12,8 @@ const TestPage = () => {
   const [answers, setAnswers] = useState([]);
   const [timeLeft, setTimeLeft] = useState(600); 
   const [isSubmitting, setIsSubmitting] = useState(false); 
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [hasAnswered, setHasAnswered] = useState(false);
   const navigate = useNavigate();
   const webcamRef = useRef(null);
 
@@ -60,12 +62,53 @@ const TestPage = () => {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, []);
 
-  const handleAnswerChange = (index, value) => {
+  // Anti-Cheating Measures
+  useEffect(() => {
+    // Detect Tab Switching
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        toast.warning('Please stay on the test page.');
+        // Log the tab switch or take action
+      }
+    };
+
+    // Prevent Copy-Paste
+    const handleCopy = (event) => {
+      event.preventDefault();
+      toast.error('Copying is disabled during the test.');
+    };
+
+    const handlePaste = (event) => {
+      event.preventDefault();
+      toast.error('Pasting is disabled during the test.');
+    };
+
+    // Disable Right-Click
+    const handleContextMenu = (event) => {
+      event.preventDefault();
+      toast.error('Right-click is disabled during the test.');
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    document.addEventListener('copy', handleCopy);
+    document.addEventListener('paste', handlePaste);
+    document.addEventListener('contextmenu', handleContextMenu);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      document.removeEventListener('copy', handleCopy);
+      document.removeEventListener('paste', handlePaste);
+      document.removeEventListener('contextmenu', handleContextMenu);
+    };
+  }, []);
+
+  const handleAnswerChange = (value) => {
     setAnswers((prevAnswers) => {
       const newAnswers = [...prevAnswers];
-      newAnswers[index] = value;
+      newAnswers[currentQuestionIndex] = value;
       return newAnswers;
     });
+    setHasAnswered(true);
   };
 
   const validateAnswers = () => {
@@ -84,7 +127,6 @@ const TestPage = () => {
     try {
       const imageSrc = webcamRef.current.getScreenshot();
 
-      
       const response = await axios.post(`http://localhost:3000/api/tests/submit`, { testId: id, answers, imageSrc }, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
@@ -101,6 +143,24 @@ const TestPage = () => {
     }
   };
 
+  const handleNext = () => {
+    if (hasAnswered) {
+      setHasAnswered(false); 
+      if (currentQuestionIndex < (test.questions.length - 1)) {
+        setCurrentQuestionIndex(currentQuestionIndex + 1);
+      }
+    } else {
+      toast.error('Please answer the current question to move forward.');
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
+      setHasAnswered(answers[currentQuestionIndex] !== null);
+    }
+  };
+
   if (!test) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-blue-200 via-purple-200 to-pink-200">
@@ -111,9 +171,11 @@ const TestPage = () => {
     );
   }
 
+  const question = test.questions[currentQuestionIndex];
+
   return (
     <div className="flex flex-col items-center min-h-screen bg-gradient-to-r from-blue-200 via-purple-200 to-pink-200">
-      <ToastContainer />
+      <ToastContainer position="top-right" autoClose={5000} />
       <div className="w-full max-w-4xl bg-white p-8 rounded-lg shadow-lg mt-6">
         <header className="flex flex-col items-center mb-6">
           <h2 className="text-4xl font-bold text-blue-600 mb-2">{test.title}</h2>
@@ -125,27 +187,42 @@ const TestPage = () => {
               <p className="text-xl font-semibold text-gray-900">Time Left: {Math.floor(timeLeft / 60)}:{('0' + (timeLeft % 60)).slice(-2)}</p>
             </div>
             <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} className="space-y-6">
-              {test.questions.map((q, index) => (
-                <div key={index} className="border-b border-gray-300 pb-6">
-                  <h3 className="text-2xl font-semibold text-gray-900 mb-2">{q.questionText}</h3>
-                  <div className="space-y-2">
-                    {q.options.map((option, optIndex) => (
-                      <div key={optIndex} className="flex items-center">
-                        <input
-                          type="radio"
-                          id={`question-${index}-option-${optIndex}`}
-                          name={`question-${index}`}
-                          value={optIndex}
-                          checked={answers[index] === optIndex}
-                          onChange={() => handleAnswerChange(index, optIndex)}
-                          className="mr-2 accent-blue-600"
-                        />
-                        <label htmlFor={`question-${index}-option-${optIndex}`} className="text-lg text-gray-800">{option}</label>
-                      </div>
-                    ))}
-                  </div>
+              <div className="border-b border-gray-300 pb-6">
+                <h3 className="text-2xl font-semibold text-gray-900 mb-2">{question.questionText}</h3>
+                <div className="space-y-2">
+                  {question.options.map((option, optIndex) => (
+                    <div key={optIndex} className="flex items-center">
+                      <input
+                        type="radio"
+                        id={`question-${currentQuestionIndex}-option-${optIndex}`}
+                        name={`question-${currentQuestionIndex}`}
+                        value={optIndex}
+                        checked={answers[currentQuestionIndex] === optIndex}
+                        onChange={() => handleAnswerChange(optIndex)}
+                        className="mr-2 accent-blue-600"
+                      />
+                      <label htmlFor={`question-${currentQuestionIndex}-option-${optIndex}`} className="text-lg text-gray-800">{option}</label>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
+              <div className="flex justify-between items-center mb-4">
+                <button 
+                  type="button"
+                  onClick={handlePrevious}
+                  className="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 transition duration-300"
+                  disabled={currentQuestionIndex === 0}
+                >
+                  Previous
+                </button>
+                <button 
+                  type="button"
+                  onClick={handleNext}
+                  className="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 transition duration-300"
+                >
+                  Next
+                </button>
+              </div>
               <button 
                 type="submit" 
                 className={`w-full bg-blue-500 text-white p-3 rounded-lg hover:bg-blue-600 transition duration-300 ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}

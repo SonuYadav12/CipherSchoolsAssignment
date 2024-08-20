@@ -24,7 +24,14 @@ const StudentHome = () => {
             Authorization: `Bearer ${token}`,
           },
         });
-        setTests(response.data);
+
+        
+        const updatedTests = response.data.map(test => ({
+          ...test,
+          imageUrl: `https://picsum.photos/seed/${test._id}/300/200`, 
+        }));
+
+        setTests(updatedTests);
       } catch (err) {
         console.error('Error fetching tests:', err);
         toast.error('Failed to fetch tests. Please try again later.', {
@@ -79,15 +86,22 @@ const StudentHome = () => {
         {tests.length > 0 ? (
           <ul className="space-y-6">
             {tests.map(test => (
-              <li key={test._id} className="border-b border-gray-300 pb-6 transition-transform transform hover:-translate-y-1 hover:shadow-lg">
-                <h3 className="text-3xl font-semibold text-gray-900">{test.title}</h3>
-                <p className="text-gray-700 text-lg mb-4">{test.description}</p>
-                <Link
-                  to={`/test/${test._id}`}
-                  className="text-blue-600 hover:text-blue-700 text-lg font-medium"
-                >
-                  Start Test
-                </Link>
+              <li key={test._id} className="border-b border-gray-300 pb-6 transition-transform transform hover:-translate-y-1 hover:shadow-lg flex items-center space-x-4">
+                <img
+                  src={test.imageUrl} 
+                  alt={test.title}
+                  className="w-24 h-24 object-cover rounded-lg"
+                />
+                <div className="flex-1">
+                  <h3 className="text-3xl font-semibold text-gray-900">{test.title}</h3>
+                  <p className="text-gray-700 text-lg mb-4">{test.description}</p>
+                  <Link
+                    to={`/test/${test._id}`}
+                    className="text-blue-600 hover:text-blue-700 text-lg font-medium"
+                  >
+                    Start Test
+                  </Link>
+                </div>
               </li>
             ))}
           </ul>

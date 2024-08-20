@@ -36,42 +36,40 @@ const App = () => {
 
   return (
     <Router>
-      <div>
-        <Routes>
-          <Route
-            path="/login"
-            element={auth ? (role === 'admin' ? <Navigate to="/admin" /> : <Navigate to="/student-home" />) : <Login setAuth={setAuth} />}
-          />
-          <Route
-            path="/signup"
-            element={auth ? <Navigate to={role === 'admin' ? "/admin" : "/student-home"} /> : <SignUp />}
-          />
-          <Route
-            path="/student-home"
-            element={auth ? (role === 'admin' ? <Navigate to="/admin" /> : <StudentHome />) : <Navigate to="/login" />}
-          />
-          <Route
-            path="/admin"
-            element={auth ? (role === 'admin' ? <AdminPage /> : <Navigate to="/student-home" />) : <Navigate to="/login" />}
-          />
-          <Route
-            path="/test/:id"
-            element={auth ? <TestPage /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/submit/:id"
-            element={auth ? <SubmitPage /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/user"
-            element={auth ? <UserPage /> : <Navigate to="/login" />} // Ensure UserPage route is protected
-          />
-          <Route
-            path="/"
-            element={auth ? (role === 'admin' ? <Navigate to="/admin" /> : <Navigate to="/student-home" />) : <Navigate to="/login" />}
-          />
-        </Routes>
-      </div>
+      <Routes>
+        <Route
+          path="/login"
+          element={!auth ? <Login setAuth={setAuth} setRole={setRole} /> : <Navigate to={role === 'admin' ? "/admin" : "/student-home"} />}
+        />
+        <Route
+          path="/signup"
+          element={!auth ? <SignUp /> : <Navigate to={role === 'admin' ? "/admin" : "/student-home"} />}
+        />
+        <Route
+          path="/student-home"
+          element={auth ? (role === 'admin' ? <Navigate to="/admin" /> : <StudentHome />) : <Navigate to="/login" />}
+        />
+        <Route
+          path="/admin"
+          element={auth ? (role === 'admin' ? <AdminPage /> : <Navigate to="/student-home" />) : <Navigate to="/login" />}
+        />
+        <Route
+          path="/test/:id"
+          element={auth ? <TestPage /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/submit/:id"
+          element={auth ? <SubmitPage /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/user"
+          element={auth ? <UserPage /> : <Navigate to="/login" />} // Ensure UserPage route is protected
+        />
+        <Route
+          path="/"
+          element={auth ? (role === 'admin' ? <Navigate to="/admin" /> : <Navigate to="/student-home" />) : <Navigate to="/login" />}
+        />
+      </Routes>
     </Router>
   );
 };

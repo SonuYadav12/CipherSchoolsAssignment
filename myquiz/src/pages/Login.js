@@ -59,10 +59,10 @@ const CanvasBackground = () => {
   return <canvas id="backgroundCanvas" className="absolute inset-0 z-0" />;
 };
 
-const Login = ({ setAuth }) => {
+const Login = ({ setAuth, setRole }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('student');
+  const [role, setRoleState] = useState('student');
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
@@ -91,6 +91,7 @@ const Login = ({ setAuth }) => {
       const res = await axios.post('http://localhost:3000/api/auth/login', { email, password, role });
       localStorage.setItem('token', res.data.token);
       setAuth(true);
+      setRole(role); 
       navigate(role === 'admin' ? '/admin' : '/student-home');
     } catch (err) {
       setError('Invalid email or password');
@@ -131,7 +132,7 @@ const Login = ({ setAuth }) => {
                 name="role"
                 value="student"
                 checked={role === 'student'}
-                onChange={() => setRole('student')}
+                onChange={() => setRoleState('student')}
                 className="form-radio"
               />
               <span className="text-gray-700">Student</span>
@@ -142,7 +143,7 @@ const Login = ({ setAuth }) => {
                 name="role"
                 value="admin"
                 checked={role === 'admin'}
-                onChange={() => setRole('admin')}
+                onChange={() => setRoleState('admin')}
                 className="form-radio"
               />
               <span className="text-gray-700">Admin</span>
