@@ -7,18 +7,19 @@ This project is a quiz application built with React, featuring role-based naviga
 
 SCREENSHOTS:
 --------------
-![](public/2.png)
-![](public/1.png)
-![](public/3.png)
-![](public/4.png)
-![](public/5.png)
-![](public/6.png)
-![](public/7.png)
-![](public/8.png)
-![](public/9.png)
-![](public/10.png)
-![](public/11.png)
-![](public/12.png)
+
+![](myquiz/public/2.png)
+![](myquiz/public/1.png)
+![](myquiz/public/3.png)
+![](myquiz/public/4.png)
+![](myquiz/public/5.png)
+![](myquiz/public/6.png)
+![](myquiz/public/7.png)
+![](myquiz/public/8.png)
+![](myquiz/public/9.png)
+![](myquiz/public/10.png)
+![](myquiz/public/11.png)
+![](myquiz/public/12.png)
 
 
 FEATURES:
