@@ -2,7 +2,7 @@ import React from 'react';
 
 const Navbar = ({ user, onUserClick, onLogout }) => {
   const defaultImageStyle = {
-    backgroundColor: '#4A90E2', 
+    backgroundColor: '#4A90E2',
     color: '#fff',
     display: 'flex',
     alignItems: 'center',
@@ -14,9 +14,11 @@ const Navbar = ({ user, onUserClick, onLogout }) => {
     fontWeight: 'bold',
   };
 
+  const title = user?.role === 'admin' ? 'Admin Panel' : 'Student Panel';
+
   return (
     <nav className="bg-gray-800 text-white flex items-center justify-between p-4 shadow-md">
-      <div className="text-lg font-bold">Admin Panel</div>
+      <div className="text-lg font-bold">{title}</div>
       <div className="flex items-center space-x-4">
         <button onClick={onUserClick} className="flex items-center space-x-2">
           {user?.profilePicture ? (

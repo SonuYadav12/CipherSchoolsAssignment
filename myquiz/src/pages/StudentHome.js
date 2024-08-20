@@ -1,9 +1,11 @@
+// src/pages/StudentHome.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { FaSignOutAlt, FaTasks } from 'react-icons/fa';
+import Navbar from '../pages/Navbar'; 
 
 const StudentHome = () => {
   const [tests, setTests] = useState([]);
@@ -25,23 +27,17 @@ const StudentHome = () => {
           },
         });
 
-        
         const updatedTests = response.data.map(test => ({
           ...test,
-          imageUrl: `https://picsum.photos/seed/${test._id}/300/200`, 
+          imageUrl: `https://picsum.photos/seed/${test._id}/300/200`,
         }));
 
         setTests(updatedTests);
       } catch (err) {
         console.error('Error fetching tests:', err);
         toast.error('Failed to fetch tests. Please try again later.', {
-          position: "top-center",
+          position: 'top-center',
           autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
         });
       } finally {
         setLoading(false);
@@ -67,28 +63,25 @@ const StudentHome = () => {
   }
 
   return (
-    <div className="flex flex-col items-center min-h-screen bg-gradient-to-r from-blue-200 via-blue-300 to-blue-400">
+    <div className="flex flex-col min-h-screen bg-gradient-to-r from-blue-200 via-blue-300 to-blue-400">
+      <Navbar onLogout={handleLogout} />
       <ToastContainer />
-      <div className="w-full max-w-4xl bg-white p-8 rounded-lg shadow-lg mt-6">
+      <div className="flex-grow w-full max-w-4xl bg-white p-8 rounded-lg shadow-lg mt-6 mx-auto">
         <header className="flex items-center justify-between mb-6">
           <h2 className="text-4xl font-bold text-gray-800 flex items-center">
             <FaTasks className="text-blue-600 mr-3" />
             Available Tests
           </h2>
-          <button
-            onClick={handleLogout}
-            className="flex items-center bg-red-500 text-white p-3 rounded-lg hover:bg-red-600 transition duration-300"
-          >
-            <FaSignOutAlt className="mr-2" />
-            Logout
-          </button>
         </header>
         {tests.length > 0 ? (
           <ul className="space-y-6">
             {tests.map(test => (
-              <li key={test._id} className="border-b border-gray-300 pb-6 transition-transform transform hover:-translate-y-1 hover:shadow-lg flex items-center space-x-4">
+              <li
+                key={test._id}
+                className="border-b border-gray-300 pb-6 transition-transform transform hover:-translate-y-1 hover:shadow-lg flex items-center space-x-4"
+              >
                 <img
-                  src={test.imageUrl} 
+                  src={test.imageUrl}
                   alt={test.title}
                   className="w-24 h-24 object-cover rounded-lg"
                 />
