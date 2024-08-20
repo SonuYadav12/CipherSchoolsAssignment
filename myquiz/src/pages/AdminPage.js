@@ -10,22 +10,29 @@ const AdminPage = () => {
   const [description, setDescription] = useState('');
   const [questions, setQuestions] = useState([{ question: '', options: [''], correctOptionIndex: null }]);
   const [user, setUser] = useState(null);
+  const [tests, setTests] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUserData = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          navigate('/login');
-          return;
-        }
+      const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/login');
+        return;
+      }
 
+      try {
         const response = await axios.get('http://localhost:3000/api/auth/me', {
           headers: { Authorization: `Bearer ${token}` },
         });
-
-        setUser(response.data);
+        const userData = response.data;
+        if (userData.role !== 'admin') {
+          toast.error('Access denied. Admins only.', { position: 'top-center', autoClose: 2000 });
+          navigate('/login');
+          return;
+        }
+        setUser(userData);
+        fetchTests(); 
       } catch (err) {
         console.error('Error fetching user data:', err);
         navigate('/login');
@@ -35,116 +42,136 @@ const AdminPage = () => {
     fetchUserData();
   }, [navigate]);
 
+  const fetchTests = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast.error('No token found. Please log in again.', { position: 'top-center', autoClose: 2000 });
+      return;
+    }
+
+    try {
+      const response = await axios.get('http://localhost:3000/api/tests', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setTests(response.data);
+    } catch (err) {
+      console.error('Error fetching tests:', err.response ? err.response.data : err.message);
+      if (err.response && err.response.status === 403) {
+        toast.error('Access forbidden: You do not have permission to view this resource.', {
+          position: 'top-center',
+          autoClose: 2000,
+        });
+      } else {
+        toast.error(`Failed to fetch tests: ${err.response ? err.response.data.message : err.message}`, {
+          position: 'top-center',
+          autoClose: 2000,
+        });
+      }
+    }
+  };
+
   const handleQuestionChange = (index, event) => {
-    setQuestions(prevQuestions => {
-      const newQuestions = [...prevQuestions];
-      newQuestions[index].question = event.target.value;
-      return newQuestions;
-    });
+    const newQuestions = [...questions];
+    newQuestions[index].question = event.target.value;
+    setQuestions(newQuestions);
   };
 
   const handleOptionChange = (qIndex, oIndex, event) => {
-    setQuestions(prevQuestions => {
-      const newQuestions = [...prevQuestions];
-      newQuestions[qIndex].options[oIndex] = event.target.value;
-      return newQuestions;
-    });
+    const newQuestions = [...questions];
+    newQuestions[qIndex].options[oIndex] = event.target.value;
+    setQuestions(newQuestions);
   };
 
   const handleCorrectOptionChange = (qIndex, oIndex) => {
-    setQuestions(prevQuestions => {
-      const newQuestions = [...prevQuestions];
-      newQuestions[qIndex].correctOptionIndex = oIndex;
-      return newQuestions;
-    });
+    const newQuestions = [...questions];
+    newQuestions[qIndex].correctOptionIndex = oIndex;
+    setQuestions(newQuestions);
   };
 
   const addQuestion = () => {
-    setQuestions(prevQuestions => [...prevQuestions, { question: '', options: [''], correctOptionIndex: null }]);
+    setQuestions([...questions, { question: '', options: [''], correctOptionIndex: null }]);
   };
 
   const removeQuestion = (index) => {
-    setQuestions(prevQuestions => prevQuestions.filter((_, i) => i !== index));
+    setQuestions(questions.filter((_, i) => i !== index));
   };
 
   const addOption = (qIndex) => {
-    setQuestions(prevQuestions => {
-      const newQuestions = [...prevQuestions];
-      newQuestions[qIndex].options.push('');
-      return newQuestions;
-    });
+    const newQuestions = [...questions];
+    newQuestions[qIndex].options.push('');
+    setQuestions(newQuestions);
   };
 
   const removeOption = (qIndex, oIndex) => {
-    setQuestions(prevQuestions => {
-      const newQuestions = [...prevQuestions];
-      newQuestions[qIndex].options = newQuestions[qIndex].options.filter((_, i) => i !== oIndex);
-      if (newQuestions[qIndex].correctOptionIndex === oIndex) {
-        newQuestions[qIndex].correctOptionIndex = null;
-      } else if (newQuestions[qIndex].correctOptionIndex > oIndex) {
-        newQuestions[qIndex].correctOptionIndex -= 1;
-      }
-      return newQuestions;
-    });
+    const newQuestions = [...questions];
+    newQuestions[qIndex].options = newQuestions[qIndex].options.filter((_, i) => i !== oIndex);
+    if (newQuestions[qIndex].correctOptionIndex === oIndex) {
+      newQuestions[qIndex].correctOptionIndex = null;
+    } else if (newQuestions[qIndex].correctOptionIndex > oIndex) {
+      newQuestions[qIndex].correctOptionIndex -= 1;
+    }
+    setQuestions(newQuestions);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast.error('No token found.', { position: 'top-center', autoClose: 2000 });
+      return;
+    }
+
+    const testData = {
+      title,
+      description,
+      questions: questions.map(q => ({
+        questionText: q.question,
+        options: q.options,
+        correctOption: q.correctOptionIndex
+      }))
+    };
+
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('No token found');
-      }
-
-      const testData = {
-        title,
-        description,
-        questions: questions.map(q => ({
-          questionText: q.question,
-          options: q.options,
-          correctOption: q.correctOptionIndex
-        }))
-      };
-
-      console.log('Submitting data:', testData); 
-
-      const response = await axios.post('http://localhost:3000/api/tests/create', 
-        testData,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      console.log('Test created:', response.data);
-      toast.success('Test created successfully!', {
-        position: "top-center",
-        autoClose: 2000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
+      await axios.post('http://localhost:3000/api/tests/create', testData, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-
-      // Reset form
+      toast.success('Test created successfully!', { position: 'top-center', autoClose: 2000 });
       setTitle('');
       setDescription('');
       setQuestions([{ question: '', options: [''], correctOptionIndex: null }]);
+      fetchTests(); 
     } catch (err) {
       console.error('Error creating test:', err.response ? err.response.data : err.message);
-      toast.error('Failed to create test.', {
-        position: "top-center",
-        autoClose: 2000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-      });
+      toast.error('Failed to create test.', { position: 'top-center', autoClose: 2000 });
     }
   };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     navigate('/login');
+  };
+
+  const handleDelete = async (testId) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast.error('No token found.', { position: 'top-center', autoClose: 2000 });
+      return;
+    }
+
+    try {
+      await axios.delete(`http://localhost:3000/api/tests/${testId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      toast.success('Test deleted successfully!', { position: 'top-center', autoClose: 2000 });
+      fetchTests(); 
+    } catch (err) {
+      console.error('Error deleting test:', err.response ? err.response.data : err.message);
+      toast.error('Failed to delete test.', { position: 'top-center', autoClose: 2000 });
+    }
+  };
+
+  const handleEdit = (testId) => {
+    navigate(`/edit-test/${testId}`);
   };
 
   return (
@@ -237,6 +264,39 @@ const AdminPage = () => {
               Create Test
             </button>
           </form>
+
+          {/* Display tests */}
+          <div className="mt-8">
+            <h2 className="text-2xl font-bold mb-4 text-gray-800">Manage Tests</h2>
+            {tests.length === 0 ? (
+              <p>No tests available.</p>
+            ) : (
+              <ul className="space-y-4">
+                {tests.map(test => (
+                  <li key={test._id} className="border border-gray-300 p-4 rounded-lg flex justify-between items-center">
+                    <div>
+                      <h3 className="text-xl font-semibold">{test.title}</h3>
+                      <p>{test.description}</p>
+                    </div>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleEdit(test._id)}
+                        className="bg-blue-500 text-white p-2 rounded"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(test._id)}
+                        className="bg-red-500 text-white p-2 rounded"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
       </div>
     </div>

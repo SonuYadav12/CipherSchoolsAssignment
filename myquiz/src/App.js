@@ -6,7 +6,8 @@ import StudentHome from './pages/StudentHome';
 import AdminPage from './pages/AdminPage';
 import TestPage from './pages/TestPage';
 import SubmitPage from './pages/SubmitPage';
-import UserPage from './pages/UserPage'; 
+import UserPage from './pages/UserPage';
+import EditTestPage from './pages/EditTestPage';
 import { getToken, decodeToken } from './utils/tokenUtils';
 
 const App = () => {
@@ -63,7 +64,11 @@ const App = () => {
         />
         <Route
           path="/user"
-          element={auth ? <UserPage /> : <Navigate to="/login" />} // Ensure UserPage route is protected
+          element={auth ? <UserPage /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/edit-test/:id"
+          element={auth ? (role === 'admin' ? <EditTestPage /> : <Navigate to="/student-home" />) : <Navigate to="/login" />}
         />
         <Route
           path="/"

@@ -1,4 +1,4 @@
-exports.admin = (req, res, next) => {
+const admin = (req, res, next) => {
   if (req.user && req.user.role === 'admin') {
     next();
   } else {
@@ -6,10 +6,12 @@ exports.admin = (req, res, next) => {
   }
 };
 
-  exports.student = (req, res, next) => {
-    if (req.user.role !== 'student') {
-      return res.status(403).json({ error: 'Access denied. Students only.' });
-    }
+const student = (req, res, next) => {
+  if (req.user && req.user.role === 'student') {
     next();
-  };
-  
+  } else {
+    res.status(403).json({ error: 'Access denied. Students only.' });
+  }
+};
+
+module.exports = { admin, student };
