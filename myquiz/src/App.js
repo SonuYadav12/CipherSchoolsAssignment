@@ -2,15 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import SignUp from './pages/SignUp';
-import StudentHome from './pages/StudentHome'; 
+import StudentHome from './pages/StudentHome';
 import AdminPage from './pages/AdminPage';
-import Test from './pages/Test';
+import TestPage from './pages/TestPage';
+import SubmitPage from './pages/SubmitPage';
+import UserPage from './pages/UserPage'; 
 import { getToken, decodeToken } from './utils/tokenUtils';
 
 const App = () => {
   const [auth, setAuth] = useState(false);
   const [role, setRole] = useState(null);
-  const [loading, setLoading] = useState(true); 
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const token = getToken();
@@ -25,11 +27,11 @@ const App = () => {
     } else {
       setAuth(false);
     }
-    setLoading(false); 
+    setLoading(false);
   }, []);
 
   if (loading) {
-    return <div>Loading...</div>; 
+    return <div>Loading...</div>;
   }
 
   return (
@@ -53,8 +55,16 @@ const App = () => {
             element={auth ? (role === 'admin' ? <AdminPage /> : <Navigate to="/student-home" />) : <Navigate to="/login" />}
           />
           <Route
-            path="/test/:id"  
-            element={auth ? <Test /> : <Navigate to="/login" />}
+            path="/test/:id"
+            element={auth ? <TestPage /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/submit/:id"
+            element={auth ? <SubmitPage /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/user"
+            element={auth ? <UserPage /> : <Navigate to="/login" />} // Ensure UserPage route is protected
           />
           <Route
             path="/"

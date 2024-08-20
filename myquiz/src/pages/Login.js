@@ -1,80 +1,163 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
+
+const CanvasBackground = () => {
+  useEffect(() => {
+    const canvas = document.getElementById('backgroundCanvas');
+    const ctx = canvas.getContext('2d');
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+
+    canvas.width = width;
+    canvas.height = height;
+
+    let particles = [];
+    const colors = ['#ff6b6b', '#f5f5f5', '#2f8f2f', '#7f5af0'];
+
+    const createParticle = (x, y) => {
+      return {
+        x,
+        y,
+        size: Math.random() * 5 + 1,
+        speedX: Math.random() * 3 - 1.5,
+        speedY: Math.random() * 3 - 1.5,
+        color: colors[Math.floor(Math.random() * colors.length)],
+      };
+    };
+
+    const generateParticles = () => {
+      for (let i = 0; i < 100; i++) {
+        particles.push(createParticle(Math.random() * width, Math.random() * height));
+      }
+    };
+
+    const updateParticles = () => {
+      ctx.clearRect(0, 0, width, height);
+      particles.forEach((particle) => {
+        particle.x += particle.speedX;
+        particle.y += particle.speedY;
+        if (particle.x > width || particle.x < 0) particle.speedX *= -1;
+        if (particle.y > height || particle.y < 0) particle.speedY *= -1;
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+        ctx.fillStyle = particle.color;
+        ctx.fill();
+      });
+      requestAnimationFrame(updateParticles);
+    };
+
+    generateParticles();
+    updateParticles();
+
+    return () => {
+      canvas.width = 0;
+      canvas.height = 0;
+    };
+  }, []);
+
+  return <canvas id="backgroundCanvas" className="absolute inset-0 z-0" />;
+};
 
 const Login = ({ setAuth }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('student'); 
-  const navigate = useNavigate(); 
+  const [role, setRole] = useState('student');
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    let colorIndex = 0;
+    const colors = ['#ff6b6b', '#f5f5f5', '#2f8f2f', '#7f5af0'];
+    const body = document.body;
+    
+    const changeBackgroundColor = () => {
+      body.style.transition = 'background-color 3s ease';
+      body.style.backgroundColor = colors[colorIndex];
+      colorIndex = (colorIndex + 1) % colors.length;
+    };
+
+    changeBackgroundColor();
+    const interval = setInterval(changeBackgroundColor, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+
     try {
       const res = await axios.post('http://localhost:3000/api/auth/login', { email, password, role });
       localStorage.setItem('token', res.data.token);
       setAuth(true);
-      navigate('/admin'); 
+      navigate(role === 'admin' ? '/admin' : '/student-home');
     } catch (err) {
-      console.error(err);
+      setError('Invalid email or password');
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold mb-6">Login</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded"
-            required
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded"
-            required
-          />
-          <div className="flex items-center space-x-4">
-            <label>
+    <div className="relative flex items-center justify-center min-h-screen overflow-hidden">
+      <CanvasBackground />
+      <div className="relative w-full max-w-lg bg-white p-8 rounded-lg shadow-lg z-10 transform transition-transform duration-500 hover:scale-105">
+        <h2 className="text-4xl font-bold text-center mb-6 text-gray-800">Login</h2>
+        {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-transform duration-300 transform hover:scale-105"
+              required
+            />
+          </div>
+          <div>
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-transform duration-300 transform hover:scale-105"
+              required
+            />
+          </div>
+          <div className="flex items-center space-x-6 mb-6">
+            <label className="flex items-center space-x-2">
               <input
                 type="radio"
                 name="role"
                 value="student"
                 checked={role === 'student'}
                 onChange={() => setRole('student')}
-                className="mr-2"
+                className="form-radio"
               />
-              Student
+              <span className="text-gray-700">Student</span>
             </label>
-            <label>
+            <label className="flex items-center space-x-2">
               <input
                 type="radio"
                 name="role"
                 value="admin"
                 checked={role === 'admin'}
                 onChange={() => setRole('admin')}
-                className="mr-2"
+                className="form-radio"
               />
-              Admin
+              <span className="text-gray-700">Admin</span>
             </label>
           </div>
           <button
             type="submit"
-            className="w-full bg-blue-500 text-white p-3 rounded hover:bg-blue-600"
+            className="w-full bg-blue-600 text-white p-4 rounded-lg shadow-md hover:bg-blue-700 transition-colors duration-300 transform hover:scale-105"
           >
             Login
           </button>
+          <div className="mt-6 text-center">
+            <Link to="/signup" className="text-blue-400 hover:underline">Create an account</Link>
+          </div>
         </form>
-        <div className="mt-4 text-center">
-          <Link to="/signup" className="text-blue-500 hover:underline">Create an account</Link>
-        </div>
       </div>
     </div>
   );

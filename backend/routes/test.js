@@ -1,5 +1,10 @@
 const express = require('express');
-const { createTest, submitTest, getTests, getTestById } = require('../controllers/testController');
+const {
+  createTest,
+  submitTest,
+  getTests,
+  getTestById,
+} = require('../controllers/testController');
 const { protect } = require('../middleware/authMiddleware');
 const { admin, student } = require('../middleware/roleMiddleware');
 

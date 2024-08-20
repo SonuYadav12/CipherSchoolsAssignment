@@ -1,10 +1,14 @@
-export const getToken = () => localStorage.getItem('token');
+import { jwtDecode } from 'jwt-decode';
+
+export const getToken = () => {
+  return localStorage.getItem('token');
+};
+
 
 export const decodeToken = (token) => {
   try {
-    return JSON.parse(atob(token.split('.')[1]));
-  } catch (e) {
-    console.error('Error decoding token', e);
+    return jwtDecode(token);
+  } catch (err) {
     return null;
   }
 };
