@@ -146,10 +146,12 @@ const AdminPage = () => {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+
     localStorage.removeItem('token');
-    navigate('/login');
-  };
+    navigate('/login', { replace: true });
+    window.location.reload();
+};
 
   const handleDelete = async (testId) => {
     const token = localStorage.getItem('token');

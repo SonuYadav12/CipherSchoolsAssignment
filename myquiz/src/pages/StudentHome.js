@@ -1,4 +1,3 @@
-// src/pages/StudentHome.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
@@ -47,10 +46,13 @@ const StudentHome = () => {
     fetchTests();
   }, [navigate]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+
     localStorage.removeItem('token');
-    navigate('/login');
-  };
+    navigate('/login', { replace: true });
+    window.location.reload();
+};
+
 
   if (loading) {
     return (
